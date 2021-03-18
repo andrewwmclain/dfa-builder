@@ -1,0 +1,271 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>DFA Builder</title>
+  <meta name="description" content="DFA Builder">
+  <meta name="author" content="Andrew McLain">
+
+</head>
+
+<body>
+    <h3>Custom DFA must follow EXACT formatting shown (spacing, commas, everything) in the dropdown examples in order for it to work.</h3>
+    <h3>For Custom DFA, you must select custom. For dropdown DFA, you must select dropdown.</h3>
+    <form id="form" onsubmit="return false;">
+        <label for="customDFAInput">DFA Description (custom):</label><br>
+        <input id="customDFAInput"></input><br>
+        <label for="DFAInput">DFA Description (choose one):</label><br>
+        <!-- ({states}, {alphabet}, {(transitions)}, start, accept) -->
+        <span>Dropdown list languages in order: </span><br>
+        <span>{w | w contains at least one 1 and an even number of 0s follows the last 1}</span> <br>
+        <span>{w | w ends in a 1}</span><br>
+        <span>{w | w is the empty string or ends in a 0}</span><br>
+        <select name ="dfaOptions" id="dfaOptions"><br>
+            <!-- w | w contains at least one 1 and an even number of 0s follows the last 1 -->
+            <option value="lang1" id="lang1">({q1, q2, q3}, {0, 1}, {(q1, 0, q1), (q1, 1, q2), (q2, 0, q3), (q2, 1, q2), (q3, 0, q2), (q3, 1, q2)}, q1, {q2})</option>
+            <!-- w | w ends in a 1 -->
+            <option value="lang2" id="lang2">({q1, q2}, {0, 1}, {(q1, 0, q1), (q1, 1, q2), (q2, 0, q1), (q2, 1, q2)}, q1, {q2})</option>
+           <!-- w | w is the empty string or ends in a 0 -->  
+            <option value="lang3", id="lang3">({q1, q2}, {0, 1}, {(q1, 0, q1), (q1, 1, q2), (q2, 0, q1), (q2, 1, q2)}, q1, {q1})</option>
+        </select><br>
+        <label for="stringInput">String Input:</label><br>
+        <input id="stringInput"></input><br>
+        <!-- <input type="submit" id="submitButton";> -->
+        <input type="submit" value="Submit" onclick="changeStuff(); return false;"/><br>
+
+        <input type="radio" id="custom" name="choice" value="custom">
+        <label for="custom">Custom</label><br>
+        <input type="radio" id="dropdown" name="choice" value="dropdown">
+        <label for="dropdown">Dropdown</label><br>
+    </form>
+        <div id="display">
+            <div id="states"></div>
+            <div id="alphabet"></div>
+            <div id="transitions"></div>
+            <div id="start"></div>
+            <div id="accept"></div>
+            <div id="solving"></div>
+        </div>
+    <script>
+        function changeStuff(){
+            var lang;
+            if(document.getElementById("custom").checked == false && document.getElementById("dropdown").checked == false){
+                alert("select a choice, custom or dropdown");
+                return false;
+            }else if(document.getElementById("custom").checked == true){
+                lang = document.querySelector("#customDFAInput").value;
+                alert(lang);
+            }else{
+                if(document.querySelector("#dfaOptions").value == "lang1"){
+                    lang = document.querySelector("#lang1").innerText;
+                }else if(document.querySelector("#dfaOptions").value == "lang2"){
+                    lang = document.querySelector("#lang2").innerText;
+                }else if(document.querySelector("#dfaOptions").value == "lang3"){
+                    lang = document.querySelector("#lang3").innerText;
+                }else{
+
+                }
+            }                
+                let states = new Array(); 
+                let alphabet = new Array();
+                let transitions = new Array(); 
+                let start = "";
+                let accept = new Array();
+ 
+                    var i = 0;
+                    var j = 0;    
+            
+                    while(lang[i] == '(' || lang[i] == '{'){
+                        ++i
+                    }   
+                    while(lang[i] != '}'){
+                        states.push("");
+                        while(lang[i] != ',' && lang[i] != '}'){
+                            states[j] += lang[i];
+                            i++;
+                        }
+                        ++j;
+                        if(lang[i] == '}'){
+                            break;
+                        }
+                        while(lang[i] == ' ' || lang[i] == ','){
+                            ++i;
+                        }
+                    }
+                    
+                    let stateString = "States: ";
+                    for(let z = 0; z < states.length; ++z){
+                        stateString += states[z] + " "
+                    }
+
+                    document.querySelector("#states").innerHTML = stateString;
+
+                    //in between
+                    while(lang[i] == '}' || lang[i] == ',' || lang[i] == ' ' || lang[i] == '{'){
+                        ++i
+                    }   
+
+
+                    j = 0;
+                    while(lang[i] != '}'){
+                        alphabet.push("");
+                        while(lang[i] != ',' && lang[i] != '}'){
+                            alphabet[j] += lang[i];
+                            ++i;
+                        }
+                        ++j;
+                        if(lang[i] == '}'){
+                            i++;
+                            break;
+                        }
+                        while(lang[i] == ',' || lang[i] == ' '){
+                            ++i
+                        }
+                    }
+                    
+                    let alphabetString = "Alphabet: ";
+                    for(let z = 0; z < alphabet.length; ++z){
+                        alphabetString += alphabet[z] + " "
+                    }
+
+                    document.querySelector("#alphabet").innerHTML = alphabetString;
+
+                    //in between 
+                    while(lang[i] == ',' || lang[i] == ' ' || lang[i] == '{' || lang[i] == '('){
+                        ++i
+                    }
+
+                    //transitions
+                    j = 0;
+                    while(lang[i] != '}'){
+                        let arr1 = new Array();
+                        transitions.push(arr1);
+                        var layer = 0;
+
+                        while(lang[i] != ')'){
+                            let arr2 = new Array();
+                            transitions[j].push(arr2);
+                            transitions[j][layer].push("");
+                            while(lang[i] != ',' && lang[i] != ')'){
+                                transitions[j][layer] += lang[i];
+                                ++i;
+                            }
+                            while(lang[i] == ' ' || lang[i] == ','){
+                                ++i;
+                            }
+                            layer++;
+                        }
+                        ++i;
+                        while(lang[i] == ' ' || lang[i] == ',' || lang[i] == '('){
+                                ++i;
+                        }
+                        ++j;
+                    }
+
+
+                    let transitionString = "Transitions: ";
+                    for(z = 0; z < transitions.length; ++z){
+                        transitionString += "(";
+                        let y = 0;
+                        for(y = 0; y < 2; ++y){
+                            transitionString += transitions[z][y] + ", "
+                        }
+                        transitionString += transitions[z][y];
+                        if(z < transitions.length - 1){
+                            transitionString += "), ";
+                        }else{
+                            transitionString += ")";
+                        }
+                    }
+
+
+                    document.querySelector("#transitions").innerHTML = transitionString;
+                    //in between
+                    while(lang[i] == ',' || lang[i] == ' ' || lang[i] == '}' || lang[i] == '('){
+                        ++i
+                    }
+
+                    //start state
+
+                    j = 0;
+                    while(lang[i] != ','){
+                        while(lang[i] != ','){
+                            start += lang[i];
+                            ++i;
+                        }
+                        ++j;
+                    }
+                    
+                    let startString = "Start State: ";
+                    startString += start;
+
+                    document.querySelector("#start").innerHTML = startString;
+
+                    while(lang[i] == ',' || lang[i] == ' ' || lang[i] == '{' || lang[i] == '('){
+                        ++i
+                    }
+
+
+                    //accepts
+
+                    while(lang[i] == '(' || lang[i] == '{'){
+                        ++i
+                    }   
+
+                    j = 0;
+                    while(lang[i] != '}'){
+                        accept.push("");
+                        while(lang[i] != ',' && lang[i] != '}'){
+                            accept[j] += lang[i];
+                            i++;
+                        }
+                        ++j;
+                        if(lang[i] == '}'){
+                            break;
+                        }
+                        while(lang[i] == ' ' || lang[i] == ','){
+                            ++i;
+                        }
+                    }
+
+                    let acceptString = "Accept States: ";
+                    for(let z = 0; z < accept.length; ++z){
+                        acceptString += accept[z] + " "
+                    }
+
+                    document.querySelector("#accept").innerHTML = acceptString;
+
+
+                var currentState = start;
+                document.querySelector("#solving").innerHTML = "List of states in order of transition: " + start + " ";
+                var testString = document.querySelector("#stringInput").value;
+                for(let w = 0; w < testString.length; ++w){
+                    let r = 0;
+                    for(r = 0; r < transitions.length; ++r){
+                        if(transitions[r][0] == currentState && transitions[r][1] == testString[w]){
+                            currentState = transitions[r][2];
+                            document.querySelector("#solving").innerHTML += currentState + " ";
+                            break;
+                        }
+                    }
+                    if(r == transitions.length){
+                        document.querySelector("#solving").innerHTML += "REJECT";
+                        return false;
+                    }                    
+                }
+                if(accept.includes(currentState) == false){
+                    document.querySelector("#solving").innerHTML += "REJECT";
+                    return false;
+                }else{
+                    document.querySelector("#solving").innerHTML += "ACCEPT";
+                    return false;
+                }
+        }
+
+
+
+    </script>
+</body>
+</html>
